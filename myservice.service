@@ -1,0 +1,83 @@
+[Unit]
+Description=My application 
+After=mysqld.service
+Requires=mysqld.service
+
+
+
+##pt-heartbeat systemd service file
+[Unit]
+Description="pt-heartbeat"
+After=network-online.target syslog.target
+Wants=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=forking
+
+ExecStart=/usr/bin/pt-heartbeat --daemonize -D mydbops --host=192.168.33.11 --master-server-id 1810 --user=pt-hbt --password=vagrant --table heartbeat --insert-heartbeat-row --update
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=pt-heartbeat
+Restart=always
+
+
+
+
+
+#pt-kill systemd service file
+
+[Unit]
+Description="pt-kill"
+After=network-online.target syslog.target
+Wants=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=forking
+
+ExecStart=/usr/bin/pt-kill --user=mon_ro --host=192.168.33.11 --password=pt@123 --busy-time 200 --kill --match-command Query --match-info (select|SELECT|Select) --match-user cron_ae --interval 10 --print --daemonize
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=pt-kill
+Restart=always
+$ systemctl daemon-reload
+$ systemctl start pt-kill
+$ systemctl status pt-kill
+pt-kill.service - "pt-kill"
+Loaded: loaded (/etc/systemd/system/pt-kill.service; enabled)
+Active: active (running) since Wed 2020-06-24 11:00:17 IST; 5 days ago
+CGroup: name=dsystemd:/system/pt-kill.service
+├─20974 perl /usr/bin/pt-kill --user=mon_ro --host=192.168.33.11 --password=pt@123 --busy-time 200 --kill --match-command Query --match-info (select|SELECT|Select) --match-user cron_ae --interval 10 --print --daemonize
+
+
+
+#pt-kill systemd service file
+
+[Unit]
+Description="pt-kill"
+After=network-online.target syslog.target
+Wants=network-online.target
+
+[Install]
+WantedBy=multi-user.target
+
+[Service]
+Type=forking
+
+ExecStart=/bin/bash /home/vagrant/pt_kill.sh
+
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=pt-kill
+Restart=always
+
+
+After=network-online.target
+Wants=network-online.target
